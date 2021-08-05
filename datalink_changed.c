@@ -11,7 +11,7 @@ struct FRAME {
     unsigned char ack;
     unsigned char seq;
     unsigned char data[PKT_LEN]; 
-    unsigned int  padding;       //²¹Ò»Î»¶ÔÆë£¡´Ó259²¹µ½260£¬×Ü´óĞ¡»á±ä³É264
+    unsigned int  padding;       //è¡¥ä¸€ä½å¯¹é½ï¼ä»259è¡¥åˆ°260ï¼Œæ€»å¤§å°ä¼šå˜æˆ264
 };
 
 static unsigned char frame_nr = 0, buffer[PKT_LEN], nbuffered;
@@ -22,7 +22,7 @@ static void put_frame(unsigned char *frame, int len)
 {
     *(unsigned int *)(frame + len) = crc32(frame, len);
     send_frame(frame, len + 4);
-    phl_ready = 0;  //Îª·ÀÖ¹¸ÃÖ¡Ã»ÓĞÈ«²¿ÉÏ´«Íê³É£¬ÏÂÒ»¸ö¿É·¢ËÍÖ¡¾ÍÒÑ¾­µ½´ï´Ó¶ø²úÉú´íÎó¡£¸ÃÖ¡´«ËÍÍê±Ïºó£¬Èç¹ûÎïÀí²ãÓĞ×ã¹»¿Õ¼ä½«»á×Ô¶¯½«ÆäÖÃÎª1
+    phl_ready = 0;  //ä¸ºé˜²æ­¢è¯¥å¸§æ²¡æœ‰å…¨éƒ¨ä¸Šä¼ å®Œæˆï¼Œä¸‹ä¸€ä¸ªå¯å‘é€å¸§å°±å·²ç»åˆ°è¾¾ä»è€Œäº§ç”Ÿé”™è¯¯ã€‚è¯¥å¸§ä¼ é€å®Œæ¯•åï¼Œå¦‚æœç‰©ç†å±‚æœ‰è¶³å¤Ÿç©ºé—´å°†ä¼šè‡ªåŠ¨å°†å…¶ç½®ä¸º1
 }
 
 static void send_data_frame(void)
@@ -36,8 +36,8 @@ static void send_data_frame(void)
 
     dbg_frame("Send DATA %d %d, ID %d\n", s.seq, s.ack, *(short *)s.data);
 
-    put_frame((unsigned char *)&s, 3 + PKT_LEN);    //°üÀ¨Ö¡Í·Ç°Èı¸öÊı¾İÔªËØÔÚÄÚµÄ×Ü³¤¶È
-    start_timer(frame_nr, DATA_TIMER);              //ÔÚÎïÀí²ã·¢Íêµ±Ç°×ÜÄÚÈİÒÔºó²Å»á¿ªÆô£¬Òò´ËËü¼ÇÂ¼ÁËTf£¬·¢ËÍÊ±ÑÓ
+    put_frame((unsigned char *)&s, 3 + PKT_LEN);    //åŒ…æ‹¬å¸§å¤´å‰ä¸‰ä¸ªæ•°æ®å…ƒç´ åœ¨å†…çš„æ€»é•¿åº¦
+    start_timer(frame_nr, DATA_TIMER);              //åœ¨ç‰©ç†å±‚å‘å®Œå½“å‰æ€»å†…å®¹ä»¥åæ‰ä¼šå¼€å¯ï¼Œå› æ­¤å®ƒè®°å½•äº†Tfï¼Œå‘é€æ—¶å»¶
 }
 
 static void send_ack_frame(void)
@@ -78,8 +78,8 @@ int main(int argc, char **argv)
             break;
 
         case FRAME_RECEIVED: 
-            len = recv_frame((unsigned char *)&f, sizeof f);        //len=263,Êµ¼ÊÉÏ×îºóµÄÎå¸ö×Ö½ÚÖĞĞ£ÑéÎ»Ö»ÓÃÁËÇ°ËÄ¸ö£¬Òò´ËµÃµ½ÓĞÓÃĞÅÏ¢µÄÎ»ÊıÊµ¼ÊÉÏÊÇ263¶ø·ÇFRAME½á¹¹ÌåÕæÕı´óĞ¡264
-            if (len < 5 || crc32((unsigned char *)&f, len) != 0) {  //ÉĞ²»Çå³ş<5ÅĞ¶ÏµÄÓÃÒâ
+            len = recv_frame((unsigned char *)&f, sizeof f);        //len=263,å®é™…ä¸Šæœ€åçš„äº”ä¸ªå­—èŠ‚ä¸­æ ¡éªŒä½åªç”¨äº†å‰å››ä¸ªï¼Œå› æ­¤å¾—åˆ°æœ‰ç”¨ä¿¡æ¯çš„ä½æ•°å®é™…ä¸Šæ˜¯263è€ŒéFRAMEç»“æ„ä½“çœŸæ­£å¤§å°264
+            if (len < 5 || crc32((unsigned char *)&f, len) != 0) {  //å°šä¸æ¸…æ¥š<5åˆ¤æ–­çš„ç”¨æ„
                 dbg_event("**** Receiver Error, Bad CRC Checksum\n");
                 break;
             }
@@ -88,13 +88,13 @@ int main(int argc, char **argv)
             if (f.kind == FRAME_DATA) {
                 dbg_frame("Recv DATA %d %d, ID %d\n", f.seq, f.ack, *(short *)f.data);
                 if (f.seq == frame_expected) {
-                    put_packet(f.data, len - 7);            //¼õÈ¥Ğ£ÑéÎ»4Î»ºÍÊ£ÏÂÈı¸öĞÅÏ¢£¬Ö»ÁôÊı¾İ²¿·Ö£¬-7
+                    put_packet(f.data, len - 7);            //å‡å»æ ¡éªŒä½4ä½å’Œå‰©ä¸‹ä¸‰ä¸ªä¿¡æ¯ï¼Œåªç•™æ•°æ®éƒ¨åˆ†ï¼Œ-7
                     frame_expected = 1 - frame_expected;
                 }
                 send_ack_frame();
             } 
             if (f.ack == frame_nr) {
-                stop_timer(frame_nr);   //ack_expected ¸únextframetosendµÈÍ¬£¬ÒòÎª´°¿ÚÖ»ÓĞ1£¬ÊÕµ½Ö®ºó²Å»á·¢ÏÂÒ»Ö¡ËùÒÔ¿ÉÒÔµÈÍ¬ 
+                stop_timer(frame_nr);   //ack_expected è·Ÿnextframetosendç­‰åŒï¼Œå› ä¸ºçª—å£åªæœ‰1ï¼Œæ”¶åˆ°ä¹‹åæ‰ä¼šå‘ä¸‹ä¸€å¸§æ‰€ä»¥å¯ä»¥ç­‰åŒ 
                 nbuffered--;
                 frame_nr = 1 - frame_nr; 
             }
@@ -112,3 +112,4 @@ int main(int argc, char **argv)
             disable_network_layer();
    }
 }
+//this is a test
